@@ -1,12 +1,8 @@
-
-
-
 <template>
     <div>
         <div style="margin-top: 15px;">
             <el-input placeholder="请输入标题" v-model="input">
-                <el-button slot="append" @click="dialogVisible = true" >发布</el-button>
-                <el-button slot="append" @click="testA" >登录</el-button>
+                <el-button slot="append" @click="prePublish" >发布</el-button>
             </el-input>
         </div>
         <!-- <el-button type="text" @click="dialogVisible = true">点击打开 Dialog</el-button> -->
@@ -57,14 +53,14 @@
         <span style="float:left;">已有标签: </span></el-col>    
         
             <el-col :span="20">
-            <el-checkbox-group v-model="checkedLabels" @change="handleCheckedLabelsChange">
+            <el-checkbox-group v-model="checkedLabels" @change="handleCheckedCitiesChange">
                 <el-checkbox v-for="my_label in my_labels" :label="my_label" :key="my_label">{{my_label}}</el-checkbox>
             </el-checkbox-group></el-col>
             </el-row>
         </div>
         <span slot="footer" class="dialog-footer">
             <el-button @click="dialogVisible = false">取 消</el-button>
-            <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+            <el-button type="primary" @click="handlePublish">确 定</el-button>
         </span>
         </el-dialog>
         <br>
@@ -95,8 +91,8 @@
     vertical-align: bottom;
   }
 </style>
-<script>
 
+<script>
  // const labelOptions = ;
   export default {
     data() {
@@ -108,7 +104,12 @@
         
         dynamicTags: ['标签一', '标签二', '标签三'],
         inputVisible: false,
-        inputValue: ''
+        inputValue: '',
+        blog:{
+            dynamicTags:['标签一', '标签二', '标签三'],
+            title,
+            blogContent
+        }
         
       };
     },
@@ -121,55 +122,53 @@
             //     });
             console.log(mavonEditor.markdownIt.render()+'@@');
         },
-        testA() {
-            console.log('login!');
-            //console.log(mavonEditor.markdownIt)
-            // this.$alert('<strong>这是 <i>HTML</i> 片段</strong><el-button type="primary">主要按钮</el-button>', 'HTML 片段', {
-            //     dangerouslyUseHTMLString: true
-            //     });
-            this.$axios({
-                url: '/api/Blog/login',
-                method: 'post',
-                baseURL: this.hostUrl,
-
-                data: {
-                    email: "123@qq.com",
-                    password: "123",
-                    code: "3"
-                }
-            })
-            .then((response) => {
-                if (response.data.code === 200) {
-                    this.$notify({
-                        title: '成功',
-                        message: '登录成功!',
-                        type: 'success'
-                    });
-                } else {
-                    console.log(response.data.code);
-                }
-            })
-            .catch((error) => {
-                this.$notify({
-                    title: '失败',
-                    message: '登录失败: ' + '请重试!',
-                    type: 'error'
-                });
-                console.log("【Error】:", error);
-            });
-        },
         $save(t_value, t_render){
             console.log('111111');
             console.log(t_value);
         },
+        createTags(){
+            for(var i=0;i<dynamicTags.length()-1;i++){
+                this.$axios({
+                    url: 'http://39.108.73.165:8080/Blog/createTag',
+                    method: 'post',
+                    baseURL: this.hostUrl,
+
+                    data: {
+                        tagContent: this.blog.dynamicTags[i],
+                    }
+                })
+                .then((response) => {
+                    if (response.data.code === 200) {
+                        console.log("添加标签成功！");
+                    } else {
+                        console.log(response.data.code);
+                        self.codeParsing(response.data.code);
+                    }
+                })
+                .catch((error) => {
+                    this.$notify({
+                        title: '失败',
+                        message: '添加标签 '+this.blog.dynamicTags[i]+' 失败: ' + '请重试!',
+                        type: 'error'
+                    });
+                    console.log("【Error】:", error);
+                });
+            }
+        },
+        prePublish(){
+            this.dialogVisible = true;
+            console.log('pre!');
+        },
         handleClose(done) {
+            console.log('close');
+            console.log(this.dynamicTags);
             this.$confirm('确认关闭？')
             .then(_ => {
                 done();
             })
             .catch(_ => {});
         },
-        handleCheckedLabelsChange(value) {
+        handleCheckedCitiesChange(value) {
             let checkedCount = value.length;
             this.checkAll = checkedCount === this.my_labels.length;
             this.isIndeterminate = checkedCount > 0 && checkedCount < this.my_labels.length;
@@ -190,6 +189,47 @@
             }
             this.inputVisible = false;
             this.inputValue = '';
+        },
+        handlePublish(){
+            this.dialogVisible = false;
+            console.log("publish!");
+            console.log(this.dynamicTags);
+            
+            // this.$axios({
+            //     url: 'http://39.108.73.165:8080/Blog/createBlog',
+            //     method: 'post',
+            //     baseURL: this.hostUrl,
+
+            //     data: {
+            //         email: this.blog.blogTitle,
+            //         password: this.blog.blogContent,
+            //         checkcode: this.blog.tags
+            //     }
+            // })
+            // .then((response) => {
+            //     if (response.data.code === 200) {
+            //         this.$notify({
+            //             title: '成功',
+            //             message: '发布成功!',
+            //             type: 'success'
+            //         });
+            //         self.goToLogin();
+            //         self.login.username = self.register.username;
+            //         self.login.password = self.register.password;
+            //         self.getVerCode(); // 手动更一次验证码
+            //     } else {
+            //         console.log(response.data.code);
+            //         self.codeParsing(response.data.code);
+            //     }
+            // })
+            // .catch((error) => {
+            //     this.$notify({
+            //         title: '失败',
+            //         message: '发布失败: ' + '请重试!',
+            //         type: 'error'
+            //     });
+            //     console.log("【Error】:", error);
+            // });
         }
     //   $imgAdd(pos, $file){
     //         // 第一步.将图片上传到服务器.
@@ -213,6 +253,3 @@
     }
   };
 </script>
-
-
-

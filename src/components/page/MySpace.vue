@@ -26,7 +26,7 @@
             </el-tab-pane>
             <el-tab-pane label="我的关注" name="second">
                   <el-table
-                    :data="tableData"
+                    :data="myFollowData"
                     border
                     style="width: 100%">
                     <el-table-column
@@ -40,6 +40,63 @@
                     <template slot-scope="scope">
                         <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
                         <el-button @click="handleCancel(scope.row)" type="text" size="small">取消关注</el-button>
+                    </template>
+                    </el-table-column>
+                </el-table>
+            </el-tab-pane>
+            <el-tab-pane label="粉丝列表" name="third">
+                  <el-table
+                    :data="followData"
+                    border
+                    style="width: 100%">
+                    <el-table-column
+                    prop="name"
+                    label="用户名"
+                    width="180">
+                    </el-table-column>
+                    <el-table-column
+                    label="操作"
+                    width="180">
+                    <template slot-scope="scope">
+                        <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
+                    </template>
+                    </el-table-column>
+                </el-table>
+            </el-tab-pane>
+            <el-tab-pane label="我的评论列表" name="forth">
+                  <el-table
+                    :data="myCommentData"
+                    border
+                    style="width: 100%">
+                    <el-table-column
+                    prop="name"
+                    label="用户名"
+                    width="180">
+                    </el-table-column>
+                    <el-table-column
+                    label="操作"
+                    width="180">
+                    <template slot-scope="scope">
+                        <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
+                    </template>
+                    </el-table-column>
+                </el-table>
+            </el-tab-pane>
+            <el-tab-pane label="评论我的列表" name="fifth">
+                  <el-table
+                    :data="commentData"
+                    border
+                    style="width: 100%">
+                    <el-table-column
+                    prop="name"
+                    label="用户名"
+                    width="180">
+                    </el-table-column>
+                    <el-table-column
+                    label="操作"
+                    width="180">
+                    <template slot-scope="scope">
+                        <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
                     </template>
                     </el-table-column>
                 </el-table>
@@ -60,19 +117,26 @@
           new_pass: '',
           desc: ''
         },
-        tableData: [{
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
+        followData: [{
+          name: '关注一',
         }, {
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1517 弄'
+          name: '关注二',
+        }],
+        myFollowData: [{
+          name: '我的关注一',
         }, {
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1519 弄'
+          name: '我的关注二',
+        }],
+        commentData: [{
+          name: '评论一',
         }, {
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1516 弄'
-        }]
+          name: '评论二',
+        }],
+        myCommentData: [{
+          name: '我的评论一',
+        }, {
+          name: '我的评论二',
+        }],
       };
     },
     methods: {

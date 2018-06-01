@@ -14,7 +14,7 @@ export default new Router({
       redirect: '/login'
     },
     {
-      path:'/myppace',
+      path:'/myspace',
       component: resolve => require(['../components/page/MySpace.vue'],resolve)
     },
     {
