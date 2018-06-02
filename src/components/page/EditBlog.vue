@@ -5,8 +5,10 @@
     <div>
         <div style="margin-top: 15px;">
             <el-input placeholder="请输入标题" v-model="input">
-                <el-button slot="append" @click="dialogVisible = true" >发布</el-button>
-                <el-button slot="append" @click="testA" >登录</el-button>
+                <el-button slot="append" @click="prePublish" >发布</el-button>
+                <el-button slot="append" @click="testLabel" >添加标签</el-button>
+                <el-button slot="append" @click="updateTags" >输出标签</el-button>
+                <el-button slot="append" @click="testLogin" >登录</el-button>
             </el-input>
         </div>
         <!-- <el-button type="text" @click="dialogVisible = true">点击打开 Dialog</el-button> -->
@@ -24,7 +26,7 @@
         <br>
         <div>
             <el-row><el-col :span="4">
-            <span style="float:left;">新的标签: </span>
+            <span style="float:left;">标签: </span>
             </el-col>
             <el-col :span="20">
         <el-tag
@@ -121,17 +123,104 @@
             //     });
             console.log(mavonEditor.markdownIt.render()+'@@');
         },
-        testA() {
+        prePublish(){
+            this.dialogVisible = true;
+        },
+        updateTags(){
+            console.log("output tags!");
+            this.$axios({
+                url: 'http://39.108.73.165:8080/Blog/tagById',
+                method: 'get',
+                xhrFields: {
+                    withCredentials: true
+                },
+                data: {
+                }
+            })
+            .then((response) => {
+                console.log(response);
+                if (response.status === 200) {
+                    this.dynamicTags=[];
+                    for(var i=0;i<response.data.length;i++){
+                        this.dynamicTags.push(response.data[i]['tagContent']);
+                    }
+                    // this.$notify({
+                    //     title: '成功',
+                    //     message: '读取标签成功!',
+                    //     type: 'success'
+                    // });
+                } else {
+                    console.log("no 200!");
+                    console.log(response.status);
+
+                }
+            })
+            .catch((error) => {
+                this.$notify({
+                    title: '失败',
+                    message: '读取标签失败: ' + '请重试!',
+                    type: 'error'
+                });
+                console.log("【Error】:", error);
+            });
+        },
+        testLabel() {
+            console.log('create Label!');
+            //console.log(mavonEditor.markdownIt)
+            // this.$alert('<strong>这是 <i>HTML</i> 片段</strong><el-button type="primary">主要按钮</el-button>', 'HTML 片段', {
+            //     dangerouslyUseHTMLString: true
+            //     });
+            this.$axios({
+                url: 'http://39.108.73.165:8080/Blog/createTag',
+                method: 'post',
+                //baseURL: this.hostUrl,
+                xhrFields: {
+                    withCredentials: true
+                },
+                data: {
+                    tagContent: "cpp",
+                }
+            })
+            .then((response) => {
+                console.log("create tag!");
+                console.log(response);
+                if (response.status === 200) {
+                    this.$notify({
+                        title: '成功',
+                        message: '创建标签成功!',
+                        type: 'success'
+                    });
+                } else {
+                    console.log("no 200!");
+                    console.log(response.status);
+
+                }
+            })
+            .catch((error) => {
+                this.$notify({
+                    title: '失败',
+                    message: '创建标签失败: ' + '请重试!',
+                    type: 'error'
+                });
+                console.log("【Error】:", error);
+            });
+        },
+        testLogin() {
             console.log('login!');
             //console.log(mavonEditor.markdownIt)
             // this.$alert('<strong>这是 <i>HTML</i> 片段</strong><el-button type="primary">主要按钮</el-button>', 'HTML 片段', {
             //     dangerouslyUseHTMLString: true
             //     });
             this.$axios({
-                url: '/api/Blog/login',
+                url: 'http://39.108.73.165:8080/Blog/login',
                 method: 'post',
-                baseURL: this.hostUrl,
-
+    //             headers: {
+    //     "Content-Type":"application/json;charset=utf-8"
+    //    },
+                //baseURL: this.hostUrl,
+                // xhrFields: {
+                //     withCredentials: true
+                // },
                 data: {
                     email: "123@qq.com",
                     password: "123",
@@ -139,14 +228,18 @@
                 }
             })
             .then((response) => {
-                if (response.data.code === 200) {
+                console.log("response: ");
+                console.log(response);
+                if (response.status === 200) {
                     this.$notify({
                         title: '成功',
                         message: '登录成功!',
                         type: 'success'
                     });
                 } else {
-                    console.log(response.data.code);
+                    console.log("no 200!");
+                    console.log(response.status);
+
                 }
             })
             .catch((error) => {
