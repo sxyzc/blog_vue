@@ -4,25 +4,67 @@
             <el-main>
         <el-tabs v-model="activeName" @tab-click="handleClick">
             <el-tab-pane label="个人信息" name="first">
-                <el-form ref="form" :model="form" label-width="80px">
+              <br>
+
+              <el-form ref="form" :model="form" label-width="160px">
+                
+                <el-row :gutter="20">
+                  <el-col :span="6"><el-form-item label="昵称">
+                      {{user.nickName}}
+                  </el-form-item></el-col>
+                </el-row>
+                <el-row :gutter="20">
+                  <el-col :span="6"><el-form-item label="邮箱">
+                      {{user.eMail}}
+                  </el-form-item></el-col>
+                </el-row>
+                <el-row :gutter="20">
+                  <el-col :span="6"><el-form-item label="联系电话">
+                      {{user.phoneNumber}}
+                  </el-form-item></el-col>
+                </el-row>
+                <el-row :gutter="20">
+                  <el-col :span="6"><el-form-item label="个人简介">
+                      {{user.profile}}
+                  </el-form-item></el-col>
+                </el-row>
+                <el-row :gutter="20">
+                  <el-col :span="6"><el-form-item>
+                    <el-button type="primary" @click="updateVisible = true">修改</el-button>
+                </el-form-item></el-col>
+                </el-row>
+                
+                </el-form>
+
+            <el-dialog
+              title="修改个人信息"
+              :visible.sync="updateVisible"
+              width="30%"
+              :before-close="handleClose">
+              <el-form ref="form" :model="form" label-width="160px">
                 <el-form-item label="昵称">
-                    <el-input v-model="form.name"></el-input>
+                    <el-input v-model="form.nickName"></el-input>
                 </el-form-item>
                 <el-form-item label="密码">
-                    <el-input v-model="form.old_pass"></el-input>
+                    <el-input v-model="form.password"></el-input>
                 </el-form-item>
-                <el-form-item label="新的密码">
-                    <el-input v-model="form.new_pass"></el-input>
+                <el-form-item label="邮箱">
+                    <el-input v-model="form.eMail"></el-input>
                 </el-form-item>
-                
-                <el-form-item label="自我介绍">
-                    <el-input type="textarea" v-model="form.desc"></el-input>
+                <el-form-item label="联系电话">
+                    <el-input v-model="form.phoneNumber"></el-input>
                 </el-form-item>
-                <el-form-item>
-                    <el-button type="primary" @click="onSubmit">修改</el-button>
-                    <el-button>取消</el-button>
+                <el-form-item label="个人简介">
+                    <el-input type="textarea" v-model="form.profile"></el-input>
                 </el-form-item>
                 </el-form>
+              <span slot="footer" class="dialog-footer">
+                <el-button @click="updateVisible = false">取 消</el-button>
+                <el-button type="primary" @click="updateVisible = false">确 定</el-button>
+              </span>
+            </el-dialog>
+
+                
             </el-tab-pane>
             <el-tab-pane label="我的关注" name="second">
                   <el-table
@@ -111,11 +153,20 @@
     data() {
       return {
         activeName: 'second',
+        nickName:'user01',
+        updateVisible:false,
         form: {
-          name: '',
-          old_pass: '',
-          new_pass: '',
-          desc: ''
+          nickName: '',
+          password: '',
+          phoneNumber: '',
+          profile: null,
+          eMail:''
+        },
+        user: {
+          nickName: '',
+          phoneNumber: '',
+          profile: null,
+          eMail:''
         },
         followData: [{
           name: '关注一',
