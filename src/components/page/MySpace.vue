@@ -1,9 +1,10 @@
 <template>
     <div>
+      <el-button slot="append" @click="testLogin" >登录</el-button>
         <el-container>
             <el-main>
-        <el-tabs v-model="activeName" @tab-click="handleClick">
-            <el-tab-pane label="个人信息" name="first">
+        <el-tabs v-model="activeName" @tab-click="tabClick">
+            <el-tab-pane label="个人信息" name="information">
               <br>
 
               <el-form ref="form" :model="form" label-width="160px">
@@ -30,7 +31,7 @@
                 </el-row>
                 <el-row :gutter="20">
                   <el-col :span="6"><el-form-item>
-                    <el-button type="primary" @click="updateVisible = true">修改</el-button>
+                    <el-button type="primary" @click="preEdit">修改</el-button>
                 </el-form-item></el-col>
                 </el-row>
                 
@@ -54,21 +55,21 @@
                 <el-form-item label="联系电话">
                     <el-input v-model="form.phoneNumber"></el-input>
                 </el-form-item>
-                <el-form-item label="个人简介">
-                    <el-input type="textarea" v-model="form.profile"></el-input>
-                </el-form-item>
+                <!-- <el-form-item label="个人简介">
+                    <el-input type="textarea" v-model="form.eMail"></el-input>
+                </el-form-item> -->
                 </el-form>
               <span slot="footer" class="dialog-footer">
                 <el-button @click="updateVisible = false">取 消</el-button>
-                <el-button type="primary" @click="updateVisible = false">确 定</el-button>
+                <el-button type="primary" @click="editInformation">确 定</el-button>
               </span>
             </el-dialog>
 
                 
             </el-tab-pane>
-            <el-tab-pane label="我的关注" name="second">
+            <el-tab-pane label="我的关注" name="follows" tab-click="followsInit">
                   <el-table
-                    :data="myFollowData"
+                    :data="follows"
                     border
                     style="width: 100%">
                     <el-table-column
@@ -86,9 +87,9 @@
                     </el-table-column>
                 </el-table>
             </el-tab-pane>
-            <el-tab-pane label="粉丝列表" name="third">
+            <el-tab-pane label="粉丝列表" name="fans">
                   <el-table
-                    :data="followData"
+                    :data="fans"
                     border
                     style="width: 100%">
                     <el-table-column
@@ -152,8 +153,7 @@
   export default {
     data() {
       return {
-        activeName: 'second',
-        nickName:'user01',
+        activeName: 'information',
         updateVisible:false,
         form: {
           nickName: '',
@@ -168,12 +168,12 @@
           profile: null,
           eMail:''
         },
-        followData: [{
+        fans: [{
           name: '关注一',
         }, {
           name: '关注二',
         }],
-        myFollowData: [{
+        follows: [{
           name: '我的关注一',
         }, {
           name: '我的关注二',
@@ -191,18 +191,132 @@
       };
     },
     methods: {
-      handleClick(tab, event) {
-        console.log(tab, event);
+      tabClick(tab, event) {
+        console.log("1");
+        //console.log(tab.value);
+        //console.log(tab, event);
+        console.log(this.activeName);
+        if(this.activeName=='follows'){
+          this.$axios({
+              url: 'http://39.108.73.165:8080/Blog/visitFollows',
+              method: 'get',
+          })
+          .then((response) => {
+              console.log("get follows data!");
+              console.log(response.data)
+              this.follows=response.data;
+          })
+          .catch((error) => {
+              console.log("【Error】:", error);
+          });
+        } else if(this.activeName=='fans'){
+          this.$axios({
+              url: 'http://39.108.73.165:8080/Blog/visitFans',
+              method: 'get',
+          })
+          .then((response) => {
+              console.log("get fans data!");
+              console.log(response.data)
+              this.fans=response.data;
+          })
+          .catch((error) => {
+              console.log("【Error】:", error);
+          });
+        }
       },
       onSubmit() {
         console.log('submit!');
       },
       handleClick(row) {
+        console.log("1");
         console.log(row);
+        console.log(row.value);
+        console.log("2");
       },
       handleCancel(row) {
         console.log(row);
-      }
+      },
+      handleClose(){
+        console.log("close");
+      },
+      followsInit(){
+        console.log("follows");
+      },
+      getInformation(){
+        this.$axios({
+              url: 'http://39.108.73.165:8080/Blog/getUserData',
+              method: 'get',
+          })
+          .then((response) => {
+              console.log("get user data!");
+              console.log(response.data)
+              this.user=response.data;
+          })
+          .catch((error) => {
+              console.log("【Error】:", error);
+          });
+      },
+      preEdit(){
+        this.form=this.user;
+        this.updateVisible=true;
+      },
+      editInformation(){
+        this.$axios({
+              url: 'http://39.108.73.165:8080/Blog/updateUserData',
+              method: 'post',
+              data:this.form
+          })
+          .then((response) => {
+              console.log("get user data!");
+              console.log(response)
+              this.user=this.form;
+          })
+          .catch((error) => {
+              console.log("【Error】:", error);
+          });
+          this.updateVisible=false;
+      },
+      testLogin() {
+            console.log('login!');
+
+
+            this.$axios({
+                url: 'http://39.108.73.165:8080/Blog/login',
+                method: 'post',
+                data: {
+                    email: "123@qq.com",
+                    password: "123",
+                    code: "3"
+                }
+            })
+            .then((response) => {
+                console.log("response: ");
+                console.log(response);
+                if (response.status === 200) {
+                    this.$notify({
+                        title: '成功',
+                        message: '登录成功!',
+                        type: 'success'
+                    });
+                } else {
+                    console.log("no 200!");
+                    console.log(response.status);
+
+                }
+            })
+            .catch((error) => {
+                this.$notify({
+                    title: '失败',
+                    message: '登录失败: ' + '请重试!',
+                    type: 'error'
+                });
+                console.log("【Error】:", error);
+            });
+        },
+    },
+    mounted(){
+            console.log("mounted!");
+            this.getInformation();
     }
   };
 </script>
