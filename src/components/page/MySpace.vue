@@ -67,79 +67,101 @@
 
                 
             </el-tab-pane>
-            <el-tab-pane label="我的关注" name="follows" tab-click="followsInit">
+            <el-tab-pane label="我的关注" name="follows" tab-click="followsInit"><br>
                   <el-table
                     :data="follows"
                     border
                     style="width: 100%">
                     <el-table-column
-                    prop="name"
+                    prop="nickName"
                     label="用户名"
-                    width="180">
+                    width="">
                     </el-table-column>
                     <el-table-column
                     label="操作"
-                    width="180">
-                    <template slot-scope="scope">
-                        <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
-                        <el-button @click="handleCancel(scope.row)" type="text" size="small">取消关注</el-button>
-                    </template>
+                    width="">
+                        <template slot-scope="scope">
+                            <el-button
+                            size="mini"
+                            @click="handleEdit(scope.row)">查看</el-button>
+                            <el-button
+                            size="mini"
+                            type="danger"
+                            @click="deleteFollow(scope.row)">取消关注</el-button>
+                        </template>
                     </el-table-column>
                 </el-table>
             </el-tab-pane>
-            <el-tab-pane label="粉丝列表" name="fans">
+            <el-tab-pane label="粉丝列表" name="fans"><br>
                   <el-table
                     :data="fans"
                     border
                     style="width: 100%">
                     <el-table-column
-                    prop="name"
+                    prop="nickName"
                     label="用户名"
-                    width="180">
+                    width="">
                     </el-table-column>
                     <el-table-column
                     label="操作"
-                    width="180">
+                    width="">
                     <template slot-scope="scope">
-                        <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
+                            <el-button
+                            size="mini"
+                            @click="handleEdit(scope.row)">查看</el-button>
                     </template>
                     </el-table-column>
                 </el-table>
             </el-tab-pane>
-            <el-tab-pane label="我的评论列表" name="forth">
+            <el-tab-pane label="我的评论列表" name="comments"><br>
+                  <el-table
+                    :data="comments"
+                    border
+                    style="width: 100%">
+                    <el-table-column
+                    prop="content"
+                    label="评论内容"
+                    width="">
+                    </el-table-column>
+                    <el-table-column
+                    label="操作"
+                    width="">
+                        <template slot-scope="scope">
+                            <el-button
+                            size="mini"
+                            @click="handleEdit(scope.row)">查看</el-button>
+                            <el-button
+                            size="mini"
+                            type="danger"
+                            @click="deleteComment(scope.row)">删除</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+
+                <el-pagination @current-change="commentChange"
+                background
+                layout="prev, pager, next"
+                :total="commentNum">
+                </el-pagination>
+            </el-tab-pane>
+            <el-tab-pane label="评论我的列表" name="fifth">
+                <br>
                   <el-table
                     :data="myCommentData"
                     border
                     style="width: 100%">
                     <el-table-column
                     prop="name"
-                    label="用户名"
-                    width="180">
+                    label="评论内容"
+                    width="">
                     </el-table-column>
                     <el-table-column
                     label="操作"
-                    width="180">
+                    width="">
                     <template slot-scope="scope">
-                        <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
-                    </template>
-                    </el-table-column>
-                </el-table>
-            </el-tab-pane>
-            <el-tab-pane label="评论我的列表" name="fifth">
-                  <el-table
-                    :data="commentData"
-                    border
-                    style="width: 100%">
-                    <el-table-column
-                    prop="name"
-                    label="用户名"
-                    width="180">
-                    </el-table-column>
-                    <el-table-column
-                    label="操作"
-                    width="180">
-                    <template slot-scope="scope">
-                        <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
+                            <el-button
+                            size="mini"
+                            @click="handleEdit(scope.row)">查看</el-button>
                     </template>
                     </el-table-column>
                 </el-table>
@@ -153,6 +175,7 @@
   export default {
     data() {
       return {
+        commentNum:2000,
         activeName: 'information',
         updateVisible:false,
         form: {
@@ -178,7 +201,7 @@
         }, {
           name: '我的关注二',
         }],
-        commentData: [{
+        comments: [{
           name: '评论一',
         }, {
           name: '评论二',
@@ -191,7 +214,7 @@
       };
     },
     methods: {
-      tabClick(tab, event) {
+      tabClick() {
         console.log("1");
         //console.log(tab.value);
         //console.log(tab, event);
@@ -222,10 +245,97 @@
           .catch((error) => {
               console.log("【Error】:", error);
           });
+        } else if(this.activeName=='comments'){
+          this.$axios({
+              url: 'http://39.108.73.165:8080/Blog/theNumberOfCommentYouMake',
+              method: 'get',
+          })
+          .then((response) => {
+              console.log("get commentNum data!");
+              console.log(response.data)
+              this.commentNum=response.data;
+              this.commentChange(1);
+          })
+          .catch((error) => {
+              console.log("【Error】:", error);
+          });
         }
       },
       onSubmit() {
         console.log('submit!');
+      },
+      commentChange(page){
+          console.log("now change to"+page);
+          this.$axios({
+              url: 'http://39.108.73.165:8080/Blog/allCommentYouMade/'+page,
+              method: 'get',
+          })
+          .then((response) => {
+              console.log("get comment data!");
+              console.log(response.data)
+              this.comments=response.data;
+          })
+          .catch((error) => {
+              console.log("【Error】:", error);
+          });
+      },
+      deleteFollow(row) {
+        console.log("delete follow!");
+        this.$confirm('是否关注此人?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.$axios({
+              url: 'http://39.108.73.165:8080/Blog/deleteFollow/'+row.userId,
+              method: 'get',
+          })
+          .then((response) => {
+              console.log("delete success!");
+                this.$message({
+                    type: 'success',
+                    message: '删除成功!'
+                });
+                this.tabClick();
+          })
+          .catch((error) => {
+              console.log("【Error】:", error);
+          });
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
+      },
+      deleteComment(row) {
+        console.log("delete comment!");
+        this.$confirm('是否删除该评论?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.$axios({
+              url: 'http://39.108.73.165:8080/Blog/deleteComment/'+row.commentId,
+              method: 'get',
+          })
+          .then((response) => {
+              console.log("delete success!");
+                this.$message({
+                    type: 'success',
+                    message: '删除成功!'
+                });
+                this.commentChange(1);
+          })
+          .catch((error) => {
+              console.log("【Error】:", error);
+          });
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
       },
       handleClick(row) {
         console.log("1");
@@ -261,6 +371,8 @@
         this.updateVisible=true;
       },
       editInformation(){
+        this.form.userId=3;
+        console.log("update user!");
         this.$axios({
               url: 'http://39.108.73.165:8080/Blog/updateUserData',
               method: 'post',
@@ -284,7 +396,7 @@
                 url: 'http://39.108.73.165:8080/Blog/login',
                 method: 'post',
                 data: {
-                    email: "123@qq.com",
+                    email: "456@qq.com",
                     password: "123",
                     code: "3"
                 }
