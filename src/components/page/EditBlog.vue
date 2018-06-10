@@ -3,12 +3,13 @@
 
 <template>
     <div>
+        <el-button slot="append" @click="testLogin" >登录</el-button>
         <div style="margin-top: 15px;">
             <el-input placeholder="请输入标题" v-model="blogTitle">
                 <el-button slot="append" @click="prePublish" >发布</el-button>
-                <el-button slot="append" @click="testLabel" >添加标签</el-button>
-                <el-button slot="append" @click="getTags" >输出标签</el-button>
-                <el-button slot="append" @click="testLogin" >登录</el-button>
+                <!-- <el-button slot="append" @click="testLabel" >添加标签</el-button>
+                <el-button slot="append" @click="getTags" >输出标签</el-button> -->
+                <!-- <el-button slot="append" @click="testLogin" >登录</el-button> -->
             </el-input>
         </div>
         <!-- <el-button type="text" @click="dialogVisible = true">点击打开 Dialog</el-button> -->
@@ -72,6 +73,9 @@
         <br>
     <!-- <mavon-editor ref=md @imgAdd="$imgAdd" @imgDel="$imgDel"></mavon-editor> -->
     <mavon-editor v-model="blogContent" ref=md @save="$save"></mavon-editor>
+    <!-- <hr> -->
+    <!-- <mavon-editor v-bind:subfield="false" v-bind:toolbarsFlag="false" defaultOpen="preview" v-bind:boxShadow="false" value="$$a^b$$"></mavon-editor>
+     -->
     </div>
 </template>
 
@@ -98,7 +102,7 @@
   }
 </style>
 <script>
-
+import axios from "axios";
  // const labelOptions = ;
   export default {
     data() {
@@ -122,6 +126,25 @@
             console.log('submit!');
             console.log(mavonEditor.markdownIt.render()+'@@');
         },
+        initBlog(blogId){
+          axios({
+              url: 'http://39.108.73.165:8080/Blog/blogDetail/'+blogId,
+              method: 'get',
+          })
+          .then((response) => {
+              console.log("get blog data!");
+              console.log(response.data);
+              this.blogContent=response.data.blogContent;
+              this.blogTitle=response.data.blogTitle;
+              //var temIds=response.data.tagIds;
+              for(var i=0;i<response.data.tags.length;i++){
+                  this.checkedTags.push(response.data.tags[i]);
+              }
+          })
+          .catch((error) => {
+              console.log("【Error】:", error);
+          });
+        },
         prePublish(){
             this.dialogVisible = true;
         },
@@ -134,7 +157,7 @@
             console.log(this.blogContent);
 
             if(this.newTags.length>0){
-                this.$axios({
+                axios({
                     url: 'http://39.108.73.165:8080/Blog/createTag',
                     method: 'post',
                     data: {
@@ -145,7 +168,8 @@
                     console.log("create tag!");
                     console.log(response.data)
                     this.newTagIds=response.data;
-                    this.createBlog();
+                    if(this.$route.params.blogId)this.updateBlog();
+                    else this.createBlog();
                 })
                 .catch((error) => {
                     this.$notify({
@@ -156,8 +180,8 @@
                     console.log("【Error】:", error);
                 });
             }
-            else 
-            this.createBlog();
+            else if(this.$route.params.blogId)this.updateBlog();
+            else this.createBlog();
         },
         createBlog(){
             console.log("create blog!");
@@ -170,7 +194,7 @@
                 }
             }
             console.log("ok!");
-            this.$axios({
+            axios({
                 url: 'http://39.108.73.165:8080/Blog/createBlog',
                 method: 'post',
                 data: {
@@ -197,9 +221,48 @@
                 console.log("【Error】:", error);
             });
         },
+        updateBlog(){
+            console.log("update blog!");
+            var allTags=[];
+            for(var i=0;i<this.newTagIds.length;i++)
+                allTags.push(this.newTagIds[i]);
+            for(var i=0;i<this.checkedTags.length;i++){
+                for(var j=0;j<this.tags.length;j++){
+                    if(this.tags[j]==this.checkedTags[i])allTags.push(this.tagIds[j]);
+                }
+            }
+            console.log("ok!");
+            axios({
+                url: 'http://39.108.73.165:8080/Blog/updateBlog',
+                method: 'post',
+                data: {
+                    blogContent: this.blogContent,
+                    blogTitle: this.blogTitle,
+                    tags: allTags,
+                    blogId: this.$route.params.blogId
+                }
+            })
+            .then((response) => {
+                if (response.status === 200) {
+                    this.$notify({
+                        title: '成功',
+                        message: '修改博客成功!',
+                        type: 'success'
+                    });
+                }
+            })
+            .catch((error) => {
+                this.$notify({
+                    title: '失败',
+                    message: '修改失败: ' + '请重试!',
+                    type: 'error'
+                });
+                console.log("【Error】:", error);
+            });
+        },
         getTags(){
             console.log("get tags!");
-            this.$axios({
+            axios({
                 url: 'http://39.108.73.165:8080/Blog/tagById',
                 method: 'get',
             })
@@ -226,7 +289,7 @@
         testLabel() {
             console.log('create Label!');
 
-            this.$axios({
+            axios({
                 url: 'http://39.108.73.165:8080/Blog/createTag',
                 method: 'post',
                 data: {
@@ -259,11 +322,11 @@
             console.log('login!');
 
 
-            this.$axios({
+            axios({
                 url: 'http://39.108.73.165:8080/Blog/login',
                 method: 'post',
                 data: {
-                    email: "123@qq.com",
+                    email: "123456@qq.com",
                     password: "123",
                     code: "3"
                 }
@@ -330,6 +393,13 @@
     mounted(){
             console.log("mounted!");
             this.getTags();
+            console.log(this.$route.params.blogId);
+            console.log(this.$route.params);
+            
+            if(this.$route.params.blogId){
+                console.log("get Id!");
+                this.initBlog(this.$route.params.blogId);
+            }
     }
   };
 </script>
